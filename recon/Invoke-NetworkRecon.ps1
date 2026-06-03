@@ -252,9 +252,9 @@ function Invoke-NetworkRecon {
     Write-Section "EXISTING PORT FORWARDS (netsh)"
 
     try {
-        $portProxy = netsh interface portproxy show all 2>$null
+        $portProxy = netsh interface portproxy show all 2>&1 | Out-String
         if ($portProxy) {
-            [void]$output.AppendLine($portProxy | Out-String)
+            [void]$output.AppendLine($portProxy)
         }
         else {
             [void]$output.AppendLine("  No port forwarding rules configured")
@@ -309,9 +309,9 @@ function Invoke-NetworkRecon {
         foreach ($host in $results['LiveHosts']) {
             try {
                 [void]$output.AppendLine("  [$($host.IPAddress)]")
-                $shares = net view \\$($host.IPAddress) 2>$null
+                $shares = net view "\\$($host.IPAddress)" 2>&1 | Out-String
                 if ($shares) {
-                    [void]$output.AppendLine($shares | Out-String)
+                    [void]$output.AppendLine($shares)
                 }
             }
             catch {
