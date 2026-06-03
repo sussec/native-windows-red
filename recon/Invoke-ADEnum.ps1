@@ -119,8 +119,8 @@ function Invoke-ADEnum {
     Write-Section "DOMAIN TRUSTS"
 
     try {
-        $trustOutput = nltest /domain_trusts 2>$null
-        [void]$output.AppendLine($trustOutput | Out-String)
+        $trustOutput = nltest /domain_trusts 2>&1 | Out-String
+        [void]$output.AppendLine($trustOutput)
         $results['DomainTrusts'] = $trustOutput
     }
     catch {
@@ -343,8 +343,8 @@ function Invoke-ADEnum {
         Write-Section "DOMAIN PASSWORD POLICY"
 
         try {
-            $policy = net accounts /domain 2>$null
-            [void]$output.AppendLine($policy | Out-String)
+            $policy = net accounts /domain 2>&1 | Out-String
+            [void]$output.AppendLine($policy)
         }
         catch {
             [void]$output.AppendLine("  [!] Error getting password policy")
