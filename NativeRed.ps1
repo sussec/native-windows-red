@@ -59,7 +59,6 @@ function Initialize-NativeRed {
 
     $modulePaths = @(
         'recon',
-        'credentials',
         'lateral-movement',
         'persistence',
         'exfiltration',
@@ -101,43 +100,80 @@ function Get-NativeRedHelp {
 RECONNAISSANCE:
   Invoke-SystemRecon       - Local system enumeration
   Invoke-ADEnum            - Active Directory enumeration
-  Invoke-NetworkRecon      - Network discovery
-
-CREDENTIALS:
-  Invoke-LsassDump         - Dump LSASS memory (requires admin)
-  Invoke-RegistryDump      - Extract SAM/SYSTEM/SECURITY hives
-  Invoke-Kerberoast        - Request TGS tickets for cracking
-  Invoke-CredentialSearch  - Search for credentials in files
+  Invoke-NetworkRecon      - Network discovery and mapping
+  New-PortForward          - Create netsh port forward for pivoting
+  Remove-AllPortForwards   - Remove all port forwards
 
 LATERAL MOVEMENT:
   Invoke-WMIExec           - Execute commands via WMI
+  Invoke-WMIQuery          - Run WMI queries on remote systems
+  Get-RemoteProcesses      - List processes on remote system
+  Get-RemoteServices       - List services on remote system
+  Get-RemoteLoggedOnUsers  - Get logged on users on remote system
   Invoke-PSRemoting        - PowerShell Remoting wrapper
-  Invoke-DCOMExec          - Execute via DCOM objects
+  New-PersistentSession    - Create persistent PSSession
+  Copy-ToRemote            - Copy file to remote system
+  Copy-FromRemote          - Copy file from remote system
+  Invoke-ParallelCommand   - Execute on multiple targets in parallel
+  Invoke-DCOMExec          - Execute via DCOM objects (MMC20, ShellWindows, ShellBrowserWindow)
+  Test-DCOMAccess          - Test DCOM accessibility on remote target
+  Invoke-ExcelDCOM         - Execute command via Excel DCOM
   Invoke-ScheduledTaskExec - Remote scheduled task execution
-  Invoke-ServiceExec       - Service-based execution
+  Invoke-PowerShellScheduledTask - Scheduled task via CIM sessions
+  Get-RemoteScheduledTasks - List scheduled tasks on remote system
+  Invoke-ServiceExec       - Service-based execution (runs as SYSTEM)
+  Set-ServiceBinaryPath    - Modify service binary path
+  Find-VulnerableServices  - Find services with weak permissions
 
 PERSISTENCE:
   Invoke-RegistryPersistence      - Registry Run key persistence
+  Get-RegistryPersistence         - List all registry persistence entries
+  New-HiddenRegistryKey           - Create null-byte hidden registry key
   Invoke-ScheduledTaskPersistence - Scheduled task persistence
+  Get-SuspiciousScheduledTasks    - Find suspicious scheduled tasks
   Invoke-WMIEventPersistence      - WMI event subscription persistence
+  Get-WMIEventSubscriptions       - List WMI event subscriptions
+  Remove-AllWMIPersistence        - Remove all WMI subscriptions
   Invoke-StartupPersistence       - Startup folder persistence
+  Get-StartupItems                - List all startup folder items
 
 EXFILTRATION:
-  Invoke-HTTPExfil         - HTTP/HTTPS exfiltration
+  Invoke-HTTPExfil         - HTTP/HTTPS data exfiltration (chunked)
+  Invoke-WebClientExfil    - Upload via System.Net.WebClient
+  Start-SimpleHTTPServer   - Start HTTP listener for receiving data
   Invoke-DNSExfil          - DNS tunneling exfiltration
-  Invoke-BITSExfil         - BITS transfer exfiltration
+  New-DNSExfilServer       - DNS exfil receiver setup instructions
+  Invoke-BITSExfil         - BITS transfer exfiltration (upload/download)
+  Get-BITSJobs             - List all BITS jobs
+  Remove-BITSJob           - Cancel a BITS job
   Invoke-SMBExfil          - SMB-based exfiltration
+  Get-RemoteShares         - Enumerate shares on remote system
+  Test-ShareAccess         - Test read/write access to a share
+  Invoke-CertutilExfil     - certutil file transfer (high detection risk)
 
 BYPASS:
-  Invoke-MSBuildBypass     - Execute code via MSBuild
-  Invoke-MshtaBypass       - Execute code via Mshta
-  New-MSBuildPayload       - Generate MSBuild payloads
-  New-HTAPayload           - Generate HTA payloads
+  Invoke-MSBuildBypass     - Execute code via MSBuild inline C# task
+  New-MSBuildPayload       - Generate MSBuild XML payload
+  New-MSBuildReverseShell  - Generate MSBuild reverse shell payload
+  Invoke-MshtaBypass       - Execute code via Mshta (HTA/VBScript)
+  New-HTAPayload           - Generate HTA payload
+  New-HTAReverseShell      - Generate HTA reverse shell payload
+  New-SCTPayload           - Generate SCT scriptlet for regsvr32 bypass
 
 UTILITIES:
-  Get-NativeRedHelp        - Show this help
   Test-AdminPrivileges     - Check if running as admin
-  Get-SecurityProducts     - Enumerate security products
+  Get-SecurityProducts     - Enumerate security products (AV/EDR)
+  Convert-ToBase64         - Encode string or file to Base64
+  Convert-FromBase64       - Decode Base64 string
+  Get-RandomString         - Generate random string
+  New-EncryptedPayload     - XOR encrypt a payload string
+  Invoke-EncryptedPayload  - Decrypt and execute XOR payload
+  Get-DomainInfo           - Get basic domain information
+  Write-Log                - Write timestamped log entry
+  ConvertTo-HexString      - Convert bytes to hex string
+  ConvertFrom-HexString    - Convert hex string to bytes
+  Get-NativeRedHelp        - Show this help
+  nrhelp                   - Alias for Get-NativeRedHelp
 
 For detailed help on any function:
   Get-Help <FunctionName> -Full
